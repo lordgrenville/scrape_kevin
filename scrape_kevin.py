@@ -21,8 +21,8 @@ def htmlencode(text):
     return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def create_feed(title, link, title_di):
-    feed = ''
+def create_feed(title, link):
+    feed = ""
     feed += (
         '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel>\n  <title>'
         + htmlencode(title)
@@ -32,14 +32,12 @@ def create_feed(title, link, title_di):
         + "</description>"
         + '<atom:link href="localhost:8888/rss.xml" rel="self" type="application/rss+xml" />'
     )
-    for item_title, item_link in title_di.items():
-        feed += insert_item('', item_link, item_title)
     feed += "</channel></rss>"
     return "".join(feed)
 
 
 def get_item(item_link, item_title):
-    print(f'New post: {item_title}')
+    print(f"New post: {item_title}")
     soup = BeautifulSoup(requests.get(item_link).text, "html.parser")
     soup.find("div", {"class": "article-social-bar"}).clear()
     post = "  <item>"
@@ -59,23 +57,21 @@ def insert_item(feed, item):
     return feed
 
 
-titles_di = get_latest_articles()
-try:
-    with open("kevin_lewis.rss", "r") as f:
-        existing_feed = f.read()
-        new_items = []
-        for item_title_, item_link_ in titles_di.items():
-            if item_link_ in existing_feed:
-                print(f"item {item_title_} is already in the feed")
-                continue
-            new_items.append(get_item(item_link_, item_title_))
-        existing_feed = insert_item(existing_feed, ' '.join(new_items))
+if __name__ == "__main__":
+    titles_di = get_latest_articles()
+    try:
+        with open("kevin_lewis.rss", "r") as f:
+            existing_feed = f.read()
+
+    except FileNotFoundError:
+        existing_feed = create_feed("Kevin Lewis", ROOT + "/authors/detail/kevin-lewis")
+
+    new_items = []
+    for item_title_, item_link_ in titles_di.items():
+        if item_link_ in existing_feed:
+            print(f"item {item_title_} is already in the feed")
+            continue
+        new_items.append(get_item(item_link_, item_title_))
+    existing_feed = insert_item(existing_feed, " ".join(new_items))
     with open("kevin_lewis.rss", "w") as f:
         f.write(existing_feed)
-
-except FileNotFoundError:
-    new_feed = create_feed(
-        "Kevin Lewis", ROOT + "/authors/detail/kevin-lewis", titles_di
-    )
-    with open("kevin_lewis.rss", "w+") as f:
-        f.write(new_feed)
