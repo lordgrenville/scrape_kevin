@@ -52,7 +52,8 @@ def get_item(item_link, item_title):
 
 def insert_item(feed, item):
     # find first item and insert just before
-    ind = feed.find("<item>")
+    to_find = 'application/rss+xml" />'
+    ind = feed.find(to_find) + len(to_find)
     feed = feed[:ind] + item + feed[ind:]
     return feed
 
@@ -64,6 +65,7 @@ if __name__ == "__main__":
             existing_feed = f.read()
 
     except FileNotFoundError:
+        print('No feed exists. Creating new feed.')
         existing_feed = create_feed("Kevin Lewis", ROOT + "/authors/detail/kevin-lewis")
 
     new_items = []
