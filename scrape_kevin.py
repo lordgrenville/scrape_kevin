@@ -59,9 +59,10 @@ def insert_item(feed, item):
 
 
 if __name__ == "__main__":
+    feed_location = "/Users/josh/Documents/research/dev/make_rss_kevin_lewis/kevin_lewis.rss"
     titles_di = get_latest_articles()
     try:
-        with open("kevin_lewis.rss", "r") as f:
+        with open(feed_location, "r") as f:
             existing_feed = f.read()
 
     except FileNotFoundError:
@@ -75,5 +76,5 @@ if __name__ == "__main__":
             continue
         new_items.append(get_item(item_link_, item_title_))
     existing_feed = insert_item(existing_feed, " ".join(new_items))
-    with open("kevin_lewis.rss", "w") as f:
+    with open(feed_location, "w") as f:
         f.write(existing_feed)
