@@ -8,12 +8,19 @@ from bs4 import BeautifulSoup
 ROOT = "https://www.nationalaffairs.com"
 
 
+def extract_article(article):
+    title = article.h2.text.strip()
+    excerpt = article.find("p", attrs={"class": "excerpt"}).text.strip()
+    link = article.find("a", attrs={"class": "article-title-link"})["href"]
+    return title + " (" + excerpt + ")", link
+
+
 def get_latest_articles():
     r_root = requests.get(ROOT + "/authors/detail/kevin-lewis")
-    soup_root = BeautifulSoup(r_root.text, "html.parser")
+    soup = BeautifulSoup(r_root.text, "html.parser")
     return {
-        link.text.strip(): ROOT + link["href"]
-        for link in soup_root.find_all("a", attrs={"class": "article-title-link"})
+        title: ROOT + link
+        for (title, link) in map(extract_article, soup.find_all("article"))
     }
 
 
@@ -42,7 +49,7 @@ def get_item(item_link, item_title):
     soup.find("div", {"class": "article-social-bar"}).clear()
     post = "  <item>"
     post += f"  <title>{item_title} </title>"
-    post += f"  <link>{ROOT + item_link} </link>"
+    post += f"  <link>{item_link} </link>"
     post += "  <description>"
     post += htmlencode(str(soup.find("div", attrs={"class": "article-content"})))
     post += "</description>  </item>"
@@ -66,15 +73,19 @@ if __name__ == "__main__":
             existing_feed = f.read()
 
     except FileNotFoundError:
-        print('No feed exists. Creating new feed.')
+        print("No feed exists. Creating new feed.")
         existing_feed = create_feed("Kevin Lewis", ROOT + "/authors/detail/kevin-lewis")
 
     new_items = []
+    ALL_NEW = True
     for item_title_, item_link_ in titles_di.items():
         if item_link_ in existing_feed:
             print(f"item {item_title_} is already in the feed")
+            ALL_NEW = False
             continue
         new_items.append(get_item(item_link_, item_title_))
     existing_feed = insert_item(existing_feed, " ".join(new_items))
+    if ALL_NEW:
+        pass  # TODO go on to next page and keep looping until existing content found?
     with open(feed_location, "w") as f:
         f.write(existing_feed)
