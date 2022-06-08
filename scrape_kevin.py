@@ -2,6 +2,7 @@
 
 from time import sleep
 
+import html
 import requests
 from bs4 import BeautifulSoup
 
@@ -24,17 +25,14 @@ def get_latest_articles():
     }
 
 
-def htmlencode(text):
-    return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-
 def create_feed(title, link):
     feed = ""
     feed += (
-        '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel>\n  <title>'
-        + htmlencode(title)
+        '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:content="http://purl.org/rss/1.0/modules/'
+        + 'content/" xmlns:dc="http://purl.org/dc/elements/1.1/"><channel>\n  <title>'
+        + html.escape(title)
         + "</title>\n  <link>"
-        + htmlencode(link)
+        + html.escape(link)
         + "</link>\n  <description>Scraping Kevin Lewis to RSS for fun and profit"
         + "</description>"
         + '<atom:link href="localhost:8888/rss.xml" rel="self" type="application/rss+xml" />'
@@ -51,7 +49,7 @@ def get_item(item_link, item_title):
     post += f"  <title>{item_title} </title>"
     post += f"  <link>{item_link} </link>"
     post += "  <description>"
-    post += htmlencode(str(soup.find("div", attrs={"class": "article-content"})))
+    post += html.escape(str(soup.find("div", attrs={"class": "article-content"})))
     post += "</description>  </item>"
     sleep(5)
     return post
