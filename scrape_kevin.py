@@ -17,7 +17,7 @@ def extract_article(article):
 
 
 def get_latest_articles():
-    r_root = requests.get(ROOT + "/authors/detail/kevin-lewis")
+    r_root = requests.get(ROOT + "/authors/detail/kevin-lewis", timeout=100)
     soup = BeautifulSoup(r_root.text, "html.parser")
     return {
         title: ROOT + link
@@ -43,7 +43,7 @@ def create_feed(title, link):
 
 def get_item(item_link, item_title):
     print(f"New post: {item_title}")
-    soup = BeautifulSoup(requests.get(item_link).text, "html.parser")
+    soup = BeautifulSoup(requests.get(item_link, timeout=100).text, "html.parser")
     soup.find("div", {"class": "article-social-bar"}).clear()
     post = "  <item>"
     post += f"  <title>{item_title} </title>"
@@ -64,7 +64,7 @@ def insert_item(feed, item):
 
 
 if __name__ == "__main__":
-    feed_location = "/Users/josh/Documents/research/dev/make_rss_kevin_lewis/kevin_lewis.rss"
+    feed_location = "/Users/josh/Documents/dev/make_rss_kevin_lewis/kevin_lewis.rss"
     titles_di = get_latest_articles()
     try:
         with open(feed_location, "r") as f:
